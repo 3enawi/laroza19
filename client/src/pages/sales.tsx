@@ -14,6 +14,8 @@ export default function Sales() {
     queryKey: ["/api/sales"],
   });
 
+  const salesArray = (sales as any) || [];
+
   return (
     <div className="min-h-screen flex">
       <Sidebar />
@@ -36,7 +38,7 @@ export default function Sales() {
             <div className="text-center">جاري التحميل...</div>
           ) : (
             <div className="space-y-4">
-              {sales?.length === 0 ? (
+              {salesArray.length === 0 ? (
                 <Card>
                   <CardContent className="p-8 text-center">
                     <TrendingUp className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
@@ -44,7 +46,7 @@ export default function Sales() {
                   </CardContent>
                 </Card>
               ) : (
-                sales?.map((sale) => (
+                salesArray.map((sale: any) => (
                   <Card key={sale.id} data-testid={`card-sale-${sale.id}`}>
                     <CardHeader>
                       <div className="flex items-center justify-between">

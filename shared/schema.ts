@@ -93,6 +93,7 @@ export const insertProductSchema = createInsertSchema(products).omit({
 
 export const insertProductInventorySchema = createInsertSchema(productInventory).omit({
   id: true,
+  productId: true, // This will be added on the server side
 });
 
 export const insertSaleSchema = createInsertSchema(sales).omit({

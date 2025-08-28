@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -19,6 +19,9 @@ interface AddProductModalProps {
 
 export default function AddProductModal({ onClose }: AddProductModalProps) {
   const [inventory, setInventory] = useState<Record<string, Record<string, number>>>({});
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -57,6 +60,20 @@ export default function AddProductModal({ onClose }: AddProductModalProps) {
       });
     },
   });
+
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result as string;
+        setImagePreview(result);
+        form.setValue("imageUrl", result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const onSubmit = (data: InsertProduct) => {
     // Convert inventory object to array format
@@ -156,14 +173,44 @@ export default function AddProductModal({ onClose }: AddProductModalProps) {
                 name="imageUrl"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>رابط الصورة</FormLabel>
-                    <FormControl>
-                      <Input 
-                        placeholder="https://example.com/image.jpg" 
-                        {...field}
-                        data-testid="input-image-url"
-                      />
-                    </FormControl>
+                    <FormLabel>صورة المنتج</FormLabel>
+                    <div className="space-y-4">
+                      <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => fileInputRef.current?.click()}
+                          data-testid="button-upload-image"
+                        >
+                          رفع صورة من الجهاز
+                        </Button>
+                        <input
+                          type="file"
+                          ref={fileInputRef}
+                          onChange={handleImageUpload}
+                          accept="image/*"
+                          className="hidden"
+                          data-testid="file-input-image"
+                        />
+                      </div>
+                      <FormControl>
+                        <Input 
+                          placeholder="أو أدخل رابط الصورة" 
+                          {...field}
+                          value={field.value || ""}
+                          data-testid="input-image-url"
+                        />
+                      </FormControl>
+                      {imagePreview && (
+                        <div className="mt-2">
+                          <img 
+                            src={imagePreview} 
+                            alt="معاينة الصورة" 
+                            className="w-32 h-32 object-cover rounded-md border"
+                          />
+                        </div>
+                      )}
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -221,6 +268,7 @@ export default function AddProductModal({ onClose }: AddProductModalProps) {
                       placeholder="وصف تفصيلي للمنتج..." 
                       rows={3}
                       {...field}
+                      value={field.value || ""}
                       data-testid="textarea-specifications"
                     />
                   </FormControl>

@@ -23,7 +23,9 @@ export default function AvailableInventory({
     enabled: !!productId,
   });
 
-  if (!inventory || inventory.length === 0) {
+  const inventoryArray = (inventory as any) || [];
+
+  if (!inventoryArray || inventoryArray.length === 0) {
     return (
       <Card className="bg-muted/20">
         <CardContent className="p-4">
@@ -34,7 +36,7 @@ export default function AvailableInventory({
   }
 
   // Group inventory by color
-  const colorGroups = inventory.reduce((groups: Record<string, any[]>, item: any) => {
+  const colorGroups = inventoryArray.reduce((groups: Record<string, any[]>, item: any) => {
     if (!groups[item.color]) {
       groups[item.color] = [];
     }
@@ -51,7 +53,7 @@ export default function AvailableInventory({
 
   const getAvailableQuantity = () => {
     if (!selectedColor || !selectedSize) return 0;
-    const item = inventory.find((inv: any) => inv.color === selectedColor && inv.size === selectedSize);
+    const item = inventoryArray.find((inv: any) => inv.color === selectedColor && inv.size === selectedSize);
     return item ? item.quantity : 0;
   };
 

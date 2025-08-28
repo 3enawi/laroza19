@@ -14,6 +14,8 @@ export default function Returns() {
     queryKey: ["/api/returns"],
   });
 
+  const returnsArray = (returns as any) || [];
+
   return (
     <div className="min-h-screen flex">
       <Sidebar />
@@ -36,7 +38,7 @@ export default function Returns() {
             <div className="text-center">جاري التحميل...</div>
           ) : (
             <div className="space-y-4">
-              {returns?.length === 0 ? (
+              {returnsArray.length === 0 ? (
                 <Card>
                   <CardContent className="p-8 text-center">
                     <RotateCcw className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
@@ -44,7 +46,7 @@ export default function Returns() {
                   </CardContent>
                 </Card>
               ) : (
-                returns?.map((returnItem) => (
+                returnsArray.map((returnItem: any) => (
                   <Card key={returnItem.id} data-testid={`card-return-${returnItem.id}`}>
                     <CardHeader>
                       <div className="flex items-center justify-between">
@@ -75,7 +77,7 @@ export default function Returns() {
                         <div className="mt-4">
                           <span className="text-muted-foreground text-sm">العناصر المرتجعة:</span>
                           <div className="mt-2 space-y-1">
-                            {returnItem.items.map((item, index) => (
+                            {returnItem.items.map((item: any, index: number) => (
                               <div key={index} className="text-sm bg-muted/30 p-2 rounded">
                                 {item.product?.modelNumber} - {item.color} - {item.size} (الكمية: {item.quantity})
                               </div>

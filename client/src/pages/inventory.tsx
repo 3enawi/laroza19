@@ -12,6 +12,8 @@ export default function Inventory() {
     queryKey: ["/api/products"],
   });
 
+  const productsArray = (products as any) || [];
+
   return (
     <div className="min-h-screen flex">
       <Sidebar />
@@ -30,7 +32,7 @@ export default function Inventory() {
             </button>
           </div>
 
-          <ProductTable products={products} isLoading={isLoading} />
+          <ProductTable products={productsArray} isLoading={isLoading} />
         </div>
       </main>
 

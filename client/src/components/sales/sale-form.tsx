@@ -116,7 +116,7 @@ export default function SaleForm({ onClose }: SaleFormProps) {
 
   // Update unit price when product or channel changes
   const updateUnitPrice = (index: number, productId: string) => {
-    const product = products?.find(p => p.id === productId);
+    const product = (products as any)?.find((p: any) => p.id === productId);
     if (product) {
       const channel = form.getValues("channel");
       const price = channel === "online" ? product.onlinePrice : product.storePrice;
@@ -228,7 +228,7 @@ export default function SaleForm({ onClose }: SaleFormProps) {
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                  {products?.map((product) => (
+                                  {(products as any)?.map((product: any) => (
                                     <SelectItem key={product.id} value={product.id}>
                                       {product.modelNumber} - {product.companyName}
                                     </SelectItem>

@@ -83,11 +83,11 @@ export default function ReturnForm({ onClose }: ReturnFormProps) {
     },
   });
 
-  const selectedSale = sales?.find(sale => sale.id === form.watch("originalSaleId"));
+  const selectedSale = (sales as any)?.find((sale: any) => sale.id === form.watch("originalSaleId"));
 
   // Auto-populate refund amount when sale is selected
   const handleSaleChange = (saleId: string) => {
-    const sale = sales?.find(s => s.id === saleId);
+    const sale = (sales as any)?.find((s: any) => s.id === saleId);
     if (sale) {
       form.setValue("refundAmount", sale.total);
     }
@@ -140,7 +140,7 @@ export default function ReturnForm({ onClose }: ReturnFormProps) {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {sales?.map((sale) => (
+                        {(sales as any)?.map((sale: any) => (
                           <SelectItem key={sale.id} value={sale.id}>
                             {sale.invoiceNumber} - {sale.total} درهم
                           </SelectItem>
@@ -254,7 +254,7 @@ export default function ReturnForm({ onClose }: ReturnFormProps) {
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                  {products?.map((product) => (
+                                  {(products as any)?.map((product: any) => (
                                     <SelectItem key={product.id} value={product.id}>
                                       {product.modelNumber} - {product.companyName}
                                     </SelectItem>

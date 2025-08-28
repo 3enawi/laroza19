@@ -22,6 +22,9 @@ export default function Dashboard() {
     queryKey: ["/api/products"],
   });
 
+  const statsData = (stats as any) || {};
+  const productsArray = (products as any) || [];
+
   return (
     <div className="min-h-screen flex">
       <Sidebar />
@@ -37,7 +40,7 @@ export default function Dashboard() {
                   <div>
                     <p className="text-sm text-muted-foreground">إجمالي المنتجات</p>
                     <p className="text-3xl font-bold text-primary" data-testid="text-total-products">
-                      {statsLoading ? "..." : stats?.totalProducts || 0}
+                      {statsLoading ? "..." : statsData.totalProducts || 0}
                     </p>
                   </div>
                   <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
@@ -53,7 +56,7 @@ export default function Dashboard() {
                   <div>
                     <p className="text-sm text-muted-foreground">مبيعات اليوم</p>
                     <p className="text-3xl font-bold text-accent" data-testid="text-today-sales">
-                      {statsLoading ? "..." : stats?.todaySales || 0}
+                      {statsLoading ? "..." : statsData.todaySales || 0}
                     </p>
                     <p className="text-xs text-muted-foreground">درهم إماراتي</p>
                   </div>
@@ -70,7 +73,7 @@ export default function Dashboard() {
                   <div>
                     <p className="text-sm text-muted-foreground">مخزون منخفض</p>
                     <p className="text-3xl font-bold text-destructive" data-testid="text-low-stock">
-                      {statsLoading ? "..." : stats?.outOfStockCount || 0}
+                      {statsLoading ? "..." : statsData.outOfStockCount || 0}
                     </p>
                     <p className="text-xs text-muted-foreground">منتج يحتاج تجديد</p>
                   </div>
@@ -87,7 +90,7 @@ export default function Dashboard() {
                   <div>
                     <p className="text-sm text-muted-foreground">طلبات أونلاين</p>
                     <p className="text-3xl font-bold text-muted-foreground" data-testid="text-online-orders">
-                      {statsLoading ? "..." : stats?.onlineOrdersCount || 0}
+                      {statsLoading ? "..." : statsData.onlineOrdersCount || 0}
                     </p>
                     <p className="text-xs text-muted-foreground">اليوم</p>
                   </div>
@@ -137,7 +140,7 @@ export default function Dashboard() {
           </div>
 
           {/* Product Inventory Table */}
-          <ProductTable products={products} isLoading={productsLoading} />
+          <ProductTable products={productsArray} isLoading={productsLoading} />
         </div>
       </main>
 
