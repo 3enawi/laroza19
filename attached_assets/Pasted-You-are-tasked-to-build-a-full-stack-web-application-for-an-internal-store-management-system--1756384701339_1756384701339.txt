@@ -1,0 +1,78 @@
+You are tasked to build a **full-stack web application** for an **internal store management system** in **Arabic language**, for the store **LAROZA (لاروزا)**. The system is for **employees only** and **does not require login or role management**.
+
+The project should be structured as a **production-ready modular project**, with the following folders:
+- /frontend → React code with Arabic UI
+- /backend → Node.js/Express backend
+- /database → schemas, migrations, seed data
+
+### Requirements:
+
+1) **Inventory Management**
+- Employees can add a new product ("model") with:
+  - Model Number (unique)
+  - Company Name (supplier)
+  - Product Type (e.g., Dress, Evening wear, Hijab)
+  - Price in Store (in AED)
+  - Price Online (in AED)
+  - Image upload (direct or external link)
+  - Product specifications (extra description)
+- Each model has **6 colors**, each color has **8 sizes** with quantities
+- Quantity can repeat for a size (e.g., 5 pieces of size 38 in black)
+- Show **Out of Stock** when quantity = 0
+- Employees can:
+  - Edit product details
+  - Delete a specific size or color when sold out
+  - Remove one piece without deleting the whole product
+  - View available stock for all models (colors, sizes, quantities)
+
+2) **Sales System**
+- Two sales channels:
+  - In-Store: Cash, Visa (+5% fee)
+  - Online: Bank Transfer, Cash on Delivery
+- Quantity deducted automatically from inventory
+- Sale recorded in accounting with payment method and fees
+
+3) **Returns**
+- Register a return by selecting the original invoice
+- Returned products added back to inventory
+- Accounting adjustments:
+  - Refund → revenue decreases
+  - Exchange → stock adjusted, no refund
+
+4) **Accounting Module**
+- Track sales invoices (in-store + online)
+- Track purchase invoices from suppliers
+- Track expenses (rent, salaries, etc.)
+- Show Total Revenues, Total Expenses, Profit & Loss in AED
+- Filter reports by date (daily, monthly, yearly)
+- Compare in-store vs online sales
+
+5) **Branding & UI**
+- Display **LAROZA / لاروزا** on all pages
+- Upload and show **logo.png** in the header
+- Clean, well-designed homepage:
+  - List of available models
+  - Quick access to add/edit products
+  - Easy access to sales and accounting reports
+- All text, labels, buttons in Arabic
+
+6) **Technical Requirements**
+- Modular structure: frontend, backend, database
+- Use Node.js/Express + React + MongoDB or PostgreSQL
+- Include `.env` for environment variables
+- Provide seed data for testing
+- Prepare the project for **deployment on Render**
+- Clean code, ready for production
+
+7) **Project Structure**
+- /frontend
+- /backend
+- /database
+- Include all React components, API routes, database schemas
+- Include sample data for models, sales, returns, and accounting
+
+**Instructions for Replit Agent:**  
+- Generate all files automatically in their proper folders
+- Include the Arabic UI and all required functionality
+- Ensure the project is ready to run and deploy on Render
+- Include `logo.png` in the frontend assets and display it in the header
