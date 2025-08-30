@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Eye, Edit, Trash2, Package, Image as ImageIcon } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import EditProductModal from "./edit-product-modal";
 import type { ProductWithInventory } from "@shared/schema";
 
 interface ProductTableProps {
@@ -21,6 +22,7 @@ export default function ProductTable({ products, isLoading }: ProductTableProps)
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedProduct, setSelectedProduct] = useState<ProductWithInventory | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -56,11 +58,8 @@ export default function ProductTable({ products, isLoading }: ProductTableProps)
   };
 
   const handleEdit = (product: ProductWithInventory) => {
-    // TODO: إضافة نافذة التعديل لاحقاً
-    toast({
-      title: "قريباً",
-      description: "وظيفة التعديل ستكون متاحة قريباً"
-    });
+    setSelectedProduct(product);
+    setIsEditModalOpen(true);
   };
 
   const handleDelete = async (id: string) => {
@@ -289,12 +288,42 @@ export default function ProductTable({ products, isLoading }: ProductTableProps)
               <div>
                 <label className="text-sm font-medium text-muted-foreground">تفاصيل المخزون</label>
                 <div className="mt-2 p-4 bg-muted/30 rounded-lg">
-                  <p className="text-center text-lg font-semibold">إجمالي الكمية: {selectedProduct.totalQuantity} قطعة</p>
+                  <p className="text-center text-lg font-semibold mb-4">إجمالي الكمية: {selectedProduct.totalQuantity} قطعة</p>
+                  
+                  {/* عرض تفاصيل الألوان والمقاسات */}
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-muted-foreground">توزيع المخزون حسب اللون والمقاس:</p>
+                    <div className="grid grid-cols-1 gap-2 max-h-40 overflow-y-auto">
+                      {selectedProduct.inventory && selectedProduct.inventory.length > 0 ? (
+                        selectedProduct.inventory.map((item: any, index: number) => (
+                          <div key={index} className="flex items-center justify-between p-2 bg-white rounded text-sm">
+                            <span className="font-medium">
+                              {item.color} - {item.size}
+                            </span>
+                            <span className="text-primary font-bold">
+                              {item.quantity} قطعة
+                            </span>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-sm text-muted-foreground text-center">لا توجد تفاصيل مخزون متاحة</p>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </DialogContent>
         </Dialog>
+      )}
+
+      {/* نافذة التعديل */}
+      {selectedProduct && (
+        <EditProductModal 
+          product={selectedProduct} 
+          open={isEditModalOpen} 
+          onOpenChange={setIsEditModalOpen}
+        />
       )}
     </>
   );
