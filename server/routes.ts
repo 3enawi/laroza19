@@ -263,9 +263,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // تحويل المبلغ إلى string إذا كان number
       const requestBody = { ...req.body };
-      if (typeof requestBody.totalAmount === 'number') {
-        requestBody.amount = requestBody.totalAmount.toString();
-        delete requestBody.totalAmount;
+      if (typeof requestBody.amount === 'number') {
+        requestBody.amount = requestBody.amount.toString();
       }
       
       const purchaseData = insertPurchaseSchema.parse(requestBody);

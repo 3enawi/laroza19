@@ -50,7 +50,7 @@ export default function Accounting() {
         body: JSON.stringify({
           description: data.description,
           category: data.category,
-          amount: parseFloat(data.amount),
+          amount: data.amount,
         }),
       });
       if (!response.ok) {
@@ -84,9 +84,9 @@ export default function Accounting() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          supplierName: data.supplierName,
-          invoiceNumber: data.invoiceNumber,
-          totalAmount: parseFloat(data.totalAmount),
+          supplier: data.supplierName,
+          description: `فاتورة رقم ${data.invoiceNumber}`,
+          amount: data.totalAmount,
         }),
       });
       if (!response.ok) {
@@ -123,9 +123,9 @@ export default function Accounting() {
   };
 
   // حساب الإحصائيات
-  const totalSales = (sales as any[])?.reduce((sum, sale) => sum + sale.total, 0) || 0;
-  const totalExpenses = (expenses as any[])?.reduce((sum, expense) => sum + expense.amount, 0) || 0;
-  const totalPurchases = (purchases as any[])?.reduce((sum, purchase) => sum + purchase.totalAmount, 0) || 0;
+  const totalSales = (sales as any[])?.reduce((sum, sale) => sum + parseFloat(sale.total), 0) || 0;
+  const totalExpenses = (expenses as any[])?.reduce((sum, expense) => sum + parseFloat(expense.amount), 0) || 0;
+  const totalPurchases = (purchases as any[])?.reduce((sum, purchase) => sum + parseFloat(purchase.amount), 0) || 0;
   const netProfit = totalSales - totalExpenses - totalPurchases;
 
   const expenseCategories = [
@@ -238,10 +238,10 @@ export default function Accounting() {
                   {(purchases as any[]).map((purchase: any) => (
                     <div key={purchase.id} className="flex items-center justify-between p-3 border rounded">
                       <div>
-                        <p className="font-medium">{purchase.supplierName}</p>
-                        <p className="text-sm text-muted-foreground">فاتورة رقم: {purchase.invoiceNumber}</p>
+                        <p className="font-medium">{purchase.supplier}</p>
+                        <p className="text-sm text-muted-foreground">{purchase.description}</p>
                       </div>
-                      <Badge variant="secondary">{purchase.totalAmount} درهم</Badge>
+                      <Badge variant="secondary">{purchase.amount} درهم</Badge>
                     </div>
                   ))}
                 </div>
