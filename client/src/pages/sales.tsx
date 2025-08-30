@@ -77,9 +77,25 @@ export default function Sales() {
                           <p className="font-bold text-primary">{sale.total} درهم</p>
                         </div>
                       </div>
-                      <div className="mt-4">
-                        <span className="text-muted-foreground text-sm">التاريخ:</span>
-                        <p className="text-sm">{new Date(sale.createdAt).toLocaleDateString('ar-AE')}</p>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-4 text-sm">
+                        <div>
+                          <span className="text-muted-foreground">التاريخ:</span>
+                          <p className="text-sm">{new Date(sale.createdAt).toLocaleDateString('ar-AE')}</p>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">اسم العميل:</span>
+                          <p className="font-medium">{sale.customerName}</p>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">رقم الهاتف:</span>
+                          <p className="font-medium">{sale.customerPhone}</p>
+                        </div>
+                        {sale.channel === 'online' && sale.trackingNumber && (
+                          <div className="md:col-span-3">
+                            <span className="text-muted-foreground">رقم التتبع:</span>
+                            <p className="font-medium text-accent">{sale.trackingNumber}</p>
+                          </div>
+                        )}
                       </div>
                     </CardContent>
                   </Card>

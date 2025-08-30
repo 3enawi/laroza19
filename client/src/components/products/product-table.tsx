@@ -318,30 +318,53 @@ export default function ProductTable({ products, isLoading }: ProductTableProps)
                     <p className="text-lg text-muted-foreground">إجمالي القطع المتاحة</p>
                   </div>
                   
-                  {/* عرض تفاصيل الألوان والمقاسات في شبكة */}
+                  {/* عرض تفاصيل الألوان والمقاسات مرتبة حسب اللون */}
                   {selectedProduct.inventory && selectedProduct.inventory.length > 0 ? (
                     <div>
                       <h4 className="text-lg font-semibold mb-4 text-center">توزيع المخزون</h4>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {selectedProduct.inventory.map((item: any, index: number) => (
-                          <div key={index} className="bg-white p-4 rounded-lg shadow-md border-r-4 border-primary">
-                            <div className="text-center">
-                              <div className="text-lg font-bold text-gray-800 mb-2">
-                                {item.color}
-                              </div>
-                              <div className="text-sm text-muted-foreground mb-2">
-                                المقاس: <span className="font-medium">{item.size}</span>
-                              </div>
-                              <div className="text-2xl font-bold text-primary">
-                                {item.quantity}
-                              </div>
-                              <div className="text-sm text-muted-foreground">
-                                قطعة متاحة
+                      
+                      {/* Group inventory by color and display each color with all its sizes */}
+                      {(() => {
+                        const groupedByColor: Record<string, any[]> = {};
+                        selectedProduct.inventory.forEach((item: any) => {
+                          if (!groupedByColor[item.color]) {
+                            groupedByColor[item.color] = [];
+                          }
+                          groupedByColor[item.color].push(item);
+                        });
+                        
+                        return Object.entries(groupedByColor)
+                          .sort(([a], [b]) => a.localeCompare(b))
+                          .map(([color, items]) => (
+                          <div key={color} className="mb-6 bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                            <div className="bg-primary/10 p-4 border-b border-gray-200">
+                              <h5 className="text-xl font-bold text-primary text-center">{color}</h5>
+                              <p className="text-sm text-muted-foreground text-center mt-1">
+                                إجمالي الكمية: {items.reduce((sum, item) => sum + item.quantity, 0)} قطعة
+                              </p>
+                            </div>
+                            <div className="p-4">
+                              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                                {items
+                                  .sort((a, b) => a.size.localeCompare(b.size))
+                                  .map((item: any, index: number) => (
+                                  <div key={index} className="bg-accent/10 p-3 rounded-lg text-center border border-accent/20">
+                                    <div className="text-lg font-bold text-gray-800 mb-1">
+                                      {item.size}
+                                    </div>
+                                    <div className="text-2xl font-bold text-accent">
+                                      {item.quantity}
+                                    </div>
+                                    <div className="text-xs text-muted-foreground">
+                                      قطعة
+                                    </div>
+                                  </div>
+                                ))}
                               </div>
                             </div>
                           </div>
-                        ))}
-                      </div>
+                        ));
+                      })()}
                       
                       {/* ملخص الألوان */}
                       <div className="mt-6 p-4 bg-white/50 rounded-lg">

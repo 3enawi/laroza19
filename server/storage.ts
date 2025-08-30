@@ -418,7 +418,7 @@ export class MemStorage implements IStorage {
 
     this.returns.set(returnId, returnData);
 
-    // Create return items and update inventory
+    // Create return items and handle inventory based on return type
     const returnItemsWithProducts = [];
     for (const item of items) {
       const returnItemId = randomUUID();
@@ -430,14 +430,79 @@ export class MemStorage implements IStorage {
       
       this.returnItems.set(returnItemId, returnItem);
       
-      // Update inventory (increase quantity)
-      const inventoryItem = Array.from(this.inventory.values()).find(
-        inv => inv.productId === item.productId && inv.color === item.color && inv.size === item.size
-      );
-      
-      if (inventoryItem) {
-        inventoryItem.quantity += item.quantity;
-        this.inventory.set(inventoryItem.id, inventoryItem);
+      if (returnData.returnType === 'refund') {
+        // For refunds: simply return items to original inventory
+        const inventoryItem = Array.from(this.inventory.values()).find(
+          inv => inv.productId === item.productId && inv.color === item.color && inv.size === item.size
+        );
+        
+        if (inventoryItem) {
+          inventoryItem.quantity += item.quantity;
+          this.inventory.set(inventoryItem.id, inventoryItem);
+        }
+      } else if (returnData.returnType === 'exchange') {
+        // Handle different types of exchanges
+        if (returnData.exchangeType === 'product-to-product') {
+          // Exchange with different product: return original item and deduct from new product
+          const originalInventory = Array.from(this.inventory.values()).find(
+            inv => inv.productId === item.productId && inv.color === item.color && inv.size === item.size
+          );
+          if (originalInventory) {
+            originalInventory.quantity += item.quantity;
+            this.inventory.set(originalInventory.id, originalInventory);
+          }
+          
+          // Deduct from new product (same color/size as requested in exchange)
+          if (returnData.newProductId) {
+            const newInventory = Array.from(this.inventory.values()).find(
+              inv => inv.productId === returnData.newProductId && inv.color === item.color && inv.size === item.size
+            );
+            if (newInventory && newInventory.quantity >= item.quantity) {
+              newInventory.quantity -= item.quantity;
+              this.inventory.set(newInventory.id, newInventory);
+            }
+          }
+        } else if (returnData.exchangeType === 'color-change') {
+          // Color change: return old color and deduct from new color
+          const originalInventory = Array.from(this.inventory.values()).find(
+            inv => inv.productId === item.productId && inv.color === item.color && inv.size === item.size
+          );
+          if (originalInventory) {
+            originalInventory.quantity += item.quantity;
+            this.inventory.set(originalInventory.id, originalInventory);
+          }
+          
+          // Deduct from new color
+          if (returnData.newColor) {
+            const newColorInventory = Array.from(this.inventory.values()).find(
+              inv => inv.productId === item.productId && inv.color === returnData.newColor && inv.size === item.size
+            );
+            if (newColorInventory && newColorInventory.quantity >= item.quantity) {
+              newColorInventory.quantity -= item.quantity;
+              this.inventory.set(newColorInventory.id, newColorInventory);
+            }
+          }
+        } else if (returnData.exchangeType === 'size-change') {
+          // Size change: return old size and deduct from new size
+          const originalInventory = Array.from(this.inventory.values()).find(
+            inv => inv.productId === item.productId && inv.color === item.color && inv.size === item.size
+          );
+          if (originalInventory) {
+            originalInventory.quantity += item.quantity;
+            this.inventory.set(originalInventory.id, originalInventory);
+          }
+          
+          // Deduct from new size
+          if (returnData.newSize) {
+            const newSizeInventory = Array.from(this.inventory.values()).find(
+              inv => inv.productId === item.productId && inv.color === item.color && inv.size === returnData.newSize
+            );
+            if (newSizeInventory && newSizeInventory.quantity >= item.quantity) {
+              newSizeInventory.quantity -= item.quantity;
+              this.inventory.set(newSizeInventory.id, newSizeInventory);
+            }
+          }
+        }
       }
 
       returnItemsWithProducts.push({
