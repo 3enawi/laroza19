@@ -18,8 +18,12 @@ export default function Sidebar() {
       <div className="p-6 border-b border-border">
         {/* Logo and Brand */}
         <div className="flex items-center gap-3 mb-2">
-          <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center">
-            <Gem className="text-primary-foreground text-xl" />
+          <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center p-1">
+            <img 
+              src="/attached_assets/logo_1756554303945.png" 
+              alt="شعار لاروزا" 
+              className="w-full h-full object-contain"
+            />
           </div>
           <div>
             <h1 className="text-xl font-bold text-primary">لاروزا</h1>
