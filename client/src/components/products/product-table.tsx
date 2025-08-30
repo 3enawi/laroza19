@@ -243,7 +243,7 @@ export default function ProductTable({ products, isLoading }: ProductTableProps)
       {/* نافذة عرض التفاصيل */}
       {selectedProduct && (
         <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>تفاصيل المنتج - {selectedProduct.modelNumber}</DialogTitle>
             </DialogHeader>
@@ -284,32 +284,82 @@ export default function ProductTable({ products, isLoading }: ProductTableProps)
                 </div>
               </div>
               
-              {/* تفاصيل المخزون */}
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">تفاصيل المخزون</label>
-                <div className="mt-2 p-4 bg-muted/30 rounded-lg">
-                  <p className="text-center text-lg font-semibold mb-4">إجمالي الكمية: {selectedProduct.totalQuantity} قطعة</p>
-                  
-                  {/* عرض تفاصيل الألوان والمقاسات */}
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-muted-foreground">توزيع المخزون حسب اللون والمقاس:</p>
-                    <div className="grid grid-cols-1 gap-2 max-h-40 overflow-y-auto">
-                      {selectedProduct.inventory && selectedProduct.inventory.length > 0 ? (
-                        selectedProduct.inventory.map((item: any, index: number) => (
-                          <div key={index} className="flex items-center justify-between p-2 bg-white rounded text-sm">
-                            <span className="font-medium">
-                              {item.color} - {item.size}
-                            </span>
-                            <span className="text-primary font-bold">
-                              {item.quantity} قطعة
-                            </span>
-                          </div>
-                        ))
-                      ) : (
-                        <p className="text-sm text-muted-foreground text-center">لا توجد تفاصيل مخزون متاحة</p>
-                      )}
-                    </div>
+              {/* تفاصيل المخزون بعرض موسع */}
+              <div className="w-full">
+                <label className="text-lg font-bold text-center block mb-4">تفاصيل المخزون</label>
+                
+                <div className="bg-gradient-to-r from-primary/10 to-accent/10 p-6 rounded-lg">
+                  <div className="text-center mb-6">
+                    <p className="text-3xl font-bold text-primary">{selectedProduct.totalQuantity}</p>
+                    <p className="text-lg text-muted-foreground">إجمالي القطع المتاحة</p>
                   </div>
+                  
+                  {/* عرض تفاصيل الألوان والمقاسات في شبكة */}
+                  {selectedProduct.inventory && selectedProduct.inventory.length > 0 ? (
+                    <div>
+                      <h4 className="text-lg font-semibold mb-4 text-center">توزيع المخزون</h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {selectedProduct.inventory.map((item: any, index: number) => (
+                          <div key={index} className="bg-white p-4 rounded-lg shadow-md border-r-4 border-primary">
+                            <div className="text-center">
+                              <div className="text-lg font-bold text-gray-800 mb-2">
+                                {item.color}
+                              </div>
+                              <div className="text-sm text-muted-foreground mb-2">
+                                المقاس: <span className="font-medium">{item.size}</span>
+                              </div>
+                              <div className="text-2xl font-bold text-primary">
+                                {item.quantity}
+                              </div>
+                              <div className="text-sm text-muted-foreground">
+                                قطعة متاحة
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      
+                      {/* ملخص الألوان */}
+                      <div className="mt-6 p-4 bg-white/50 rounded-lg">
+                        <h5 className="font-semibold mb-2 text-center">ملخص الألوان المتاحة:</h5>
+                        <div className="flex flex-wrap justify-center gap-2">
+                          {Array.from(new Set(selectedProduct.inventory.map((item: any) => item.color))).map((color: string) => {
+                            const colorTotal = selectedProduct.inventory
+                              .filter((item: any) => item.color === color)
+                              .reduce((sum: number, item: any) => sum + item.quantity, 0);
+                            return (
+                              <div key={color} className="bg-primary/20 px-3 py-1 rounded-full text-sm">
+                                <span className="font-medium">{color}</span>: {colorTotal} قطعة
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                      
+                      {/* ملخص المقاسات */}
+                      <div className="mt-4 p-4 bg-white/50 rounded-lg">
+                        <h5 className="font-semibold mb-2 text-center">ملخص المقاسات المتاحة:</h5>
+                        <div className="flex flex-wrap justify-center gap-2">
+                          {Array.from(new Set(selectedProduct.inventory.map((item: any) => item.size))).map((size: string) => {
+                            const sizeTotal = selectedProduct.inventory
+                              .filter((item: any) => item.size === size)
+                              .reduce((sum: number, item: any) => sum + item.quantity, 0);
+                            return (
+                              <div key={size} className="bg-accent/20 px-3 py-1 rounded-full text-sm">
+                                <span className="font-medium">{size}</span>: {sizeTotal} قطعة
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <Package className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                      <p className="text-lg text-muted-foreground">لا توجد تفاصيل مخزون متاحة</p>
+                      <p className="text-sm text-muted-foreground mt-2">يرجى إضافة مخزون لهذا المنتج</p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

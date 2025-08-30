@@ -37,8 +37,8 @@ export default function EditProductModal({ product, open, onOpenChange }: EditPr
           modelNumber: data.modelNumber,
           companyName: data.companyName,
           productType: data.productType,
-          storePrice: parseFloat(data.storePrice),
-          onlinePrice: parseFloat(data.onlinePrice),
+          storePrice: data.storePrice,
+          onlinePrice: data.onlinePrice,
         }),
       });
       if (!response.ok) {

@@ -75,7 +75,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put("/api/products/:id", async (req, res) => {
     try {
-      const productData = insertProductSchema.partial().parse(req.body);
+      // تحويل الأسعار إلى strings إذا كانت numbers
+      const requestBody = { ...req.body };
+      if (typeof requestBody.storePrice === 'number') {
+        requestBody.storePrice = requestBody.storePrice.toString();
+      }
+      if (typeof requestBody.onlinePrice === 'number') {
+        requestBody.onlinePrice = requestBody.onlinePrice.toString();
+      }
+      
+      const productData = insertProductSchema.partial().parse(requestBody);
       const product = await storage.updateProduct(req.params.id, productData);
       if (!product) {
         return res.status(404).json({ message: "Product not found" });
@@ -224,7 +233,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/expenses", async (req, res) => {
     try {
-      const expenseData = insertExpenseSchema.parse(req.body);
+      // تحويل المبلغ إلى string إذا كان number
+      const requestBody = { ...req.body };
+      if (typeof requestBody.amount === 'number') {
+        requestBody.amount = requestBody.amount.toString();
+      }
+      
+      const expenseData = insertExpenseSchema.parse(requestBody);
       const expense = await storage.createExpense(expenseData);
       res.status(201).json(expense);
     } catch (error) {
@@ -246,7 +261,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/purchases", async (req, res) => {
     try {
-      const purchaseData = insertPurchaseSchema.parse(req.body);
+      // تحويل المبلغ إلى string إذا كان number
+      const requestBody = { ...req.body };
+      if (typeof requestBody.totalAmount === 'number') {
+        requestBody.amount = requestBody.totalAmount.toString();
+        delete requestBody.totalAmount;
+      }
+      
+      const purchaseData = insertPurchaseSchema.parse(requestBody);
       const purchase = await storage.createPurchase(purchaseData);
       res.status(201).json(purchase);
     } catch (error) {
