@@ -5,7 +5,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Eye, Edit, Trash2, Package } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Eye, Edit, Trash2, Package, Image as ImageIcon } from "lucide-react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
 import type { ProductWithInventory } from "@shared/schema";
 
 interface ProductTableProps {
@@ -16,6 +19,55 @@ interface ProductTableProps {
 export default function ProductTable({ products, isLoading }: ProductTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [selectedProduct, setSelectedProduct] = useState<ProductWithInventory | null>(null);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const deleteProductMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await fetch(`/api/products/${id}`, {
+        method: 'DELETE'
+      });
+      if (!response.ok) {
+        throw new Error('Failed to delete product');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/products"] });
+      toast({
+        title: "تم الحذف",
+        description: "تم حذف المنتج بنجاح"
+      });
+    },
+    onError: () => {
+      toast({
+        title: "خطأ",
+        description: "حدث خطأ أثناء حذف المنتج",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const handleView = (product: ProductWithInventory) => {
+    setSelectedProduct(product);
+    setIsViewModalOpen(true);
+  };
+
+  const handleEdit = (product: ProductWithInventory) => {
+    // TODO: إضافة نافذة التعديل لاحقاً
+    toast({
+      title: "قريباً",
+      description: "وظيفة التعديل ستكون متاحة قريباً"
+    });
+  };
+
+  const handleDelete = async (id: string) => {
+    if (confirm('هل أنت متأكد من حذف هذا المنتج؟')) {
+      deleteProductMutation.mutate(id);
+    }
+  };
 
   const filteredProducts = products?.filter((product) => {
     const matchesSearch = product.modelNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -60,101 +112,190 @@ export default function ProductTable({ products, isLoading }: ProductTableProps)
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold">جدول المخزون</h3>
-          <div className="flex items-center space-x-4 space-x-reverse">
-            <Input 
-              type="text" 
-              placeholder="البحث في المنتجات..." 
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-64"
-              data-testid="input-search-products"
-            />
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-40" data-testid="select-status-filter">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">جميع المنتجات</SelectItem>
-                <SelectItem value="in-stock">متوفر</SelectItem>
-                <SelectItem value="low-stock">مخزون قليل</SelectItem>
-                <SelectItem value="out-of-stock">نفذ</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-      </CardHeader>
-      
-      <CardContent>
+    <>
+      {/* الجدول الرئيسي مع عرض محسن يظهر صورة وتفاصيل المنتج */}
+      <div className="space-y-6">
+        {/* البحث والفلترة */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold">جدول المخزون</h3>
+              <div className="flex items-center space-x-4 space-x-reverse">
+                <Input 
+                  type="text" 
+                  placeholder="البحث في المنتجات..." 
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-64"
+                  data-testid="input-search-products"
+                />
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-40" data-testid="select-status-filter">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">جميع المنتجات</SelectItem>
+                    <SelectItem value="in-stock">متوفر</SelectItem>
+                    <SelectItem value="low-stock">مخزون قليل</SelectItem>
+                    <SelectItem value="out-of-stock">نفذ</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </CardHeader>
+        </Card>
+
+        {/* عرض المنتجات في شكل بطاقات مع صور */}
         {filteredProducts.length === 0 ? (
-          <div className="text-center py-8">
-            <Package className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-            <p className="text-muted-foreground">
-              {products?.length === 0 ? "لا توجد منتجات مضافة بعد" : "لم يتم العثور على منتجات مطابقة"}
-            </p>
-          </div>
+          <Card>
+            <CardContent className="p-8 text-center">
+              <Package className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+              <p className="text-muted-foreground">
+                {products?.length === 0 ? "لا توجد منتجات مضافة بعد" : "لم يتم العثور على منتجات مطابقة"}
+              </p>
+            </CardContent>
+          </Card>
         ) : (
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="text-right">الموديل</TableHead>
-                  <TableHead className="text-right">الشركة</TableHead>
-                  <TableHead className="text-right">النوع</TableHead>
-                  <TableHead className="text-right">سعر المتجر</TableHead>
-                  <TableHead className="text-right">سعر الأونلاين</TableHead>
-                  <TableHead className="text-right">المخزون</TableHead>
-                  <TableHead className="text-right">الحالة</TableHead>
-                  <TableHead className="text-right">إجراءات</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredProducts.map((product, index) => (
-                  <TableRow key={product.id} className="hover:bg-muted/30">
-                    <TableCell data-testid={`cell-model-${index + 1}`}>
-                      {product.modelNumber}
-                    </TableCell>
-                    <TableCell data-testid={`cell-company-${index + 1}`}>
-                      {product.companyName}
-                    </TableCell>
-                    <TableCell data-testid={`cell-type-${index + 1}`}>
-                      {getProductTypeName(product.productType)}
-                    </TableCell>
-                    <TableCell data-testid={`cell-store-price-${index + 1}`}>
-                      {product.storePrice} درهم
-                    </TableCell>
-                    <TableCell data-testid={`cell-online-price-${index + 1}`}>
-                      {product.onlinePrice} درهم
-                    </TableCell>
-                    <TableCell>
-                      {product.totalQuantity} قطعة
-                    </TableCell>
-                    <TableCell data-testid={`cell-status-${index + 1}`}>
-                      {getStatusBadge(product.status)}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center space-x-2 space-x-reverse">
-                        <Button variant="ghost" size="sm" title="تعديل">
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm" title="عرض التفاصيل">
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm" title="حذف">
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredProducts.map((product) => (
+              <Card key={product.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                {/* صورة المنتج */}
+                <div className="aspect-[3/4] bg-muted flex items-center justify-center">
+                  <div className="text-center">
+                    <ImageIcon className="h-16 w-16 text-muted-foreground mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground">صورة المنتج</p>
+                  </div>
+                </div>
+                
+                <CardContent className="p-4">
+                  {/* معلومات المنتج */}
+                  <div className="space-y-3">
+                    <div>
+                      <h3 className="font-bold text-lg text-right">{product.modelNumber}</h3>
+                      <p className="text-muted-foreground text-right">{product.companyName}</p>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <div className="text-right">
+                        <p className="text-sm text-muted-foreground">النوع</p>
+                        <p className="font-medium">{getProductTypeName(product.productType)}</p>
                       </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                      <div>{getStatusBadge(product.status)}</div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4 text-right">
+                      <div>
+                        <p className="text-sm text-muted-foreground">سعر المتجر</p>
+                        <p className="font-bold text-primary">{product.storePrice} درهم</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">سعر الأونلاين</p>
+                        <p className="font-bold text-accent">{product.onlinePrice} درهم</p>
+                      </div>
+                    </div>
+                    
+                    <div className="text-center p-2 bg-muted/30 rounded">
+                      <p className="text-sm text-muted-foreground">المخزون المتاح</p>
+                      <p className="font-bold text-lg">{product.totalQuantity} قطعة</p>
+                    </div>
+                    
+                    {/* أزرار الإجراءات */}
+                    <div className="flex items-center justify-center space-x-2 space-x-reverse pt-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        title="تعديل"
+                        onClick={() => handleEdit(product)}
+                        data-testid={`button-edit-${product.id}`}
+                      >
+                        <Edit className="h-4 w-4 ml-1" />
+                        تعديل
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        title="عرض التفاصيل"
+                        onClick={() => handleView(product)}
+                        data-testid={`button-view-${product.id}`}
+                      >
+                        <Eye className="h-4 w-4 ml-1" />
+                        التفاصيل
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        title="حذف"
+                        onClick={() => handleDelete(product.id)}
+                        disabled={deleteProductMutation.isPending}
+                        data-testid={`button-delete-${product.id}`}
+                      >
+                        <Trash2 className="h-4 w-4 ml-1 text-destructive" />
+                        حذف
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+
+      {/* نافذة عرض التفاصيل */}
+      {selectedProduct && (
+        <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>تفاصيل المنتج - {selectedProduct.modelNumber}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-6">
+              {/* صورة المنتج */}
+              <div className="flex justify-center">
+                <div className="w-48 h-64 bg-muted rounded-lg flex flex-col items-center justify-center">
+                  <ImageIcon className="h-12 w-12 text-muted-foreground mb-2" />
+                  <span className="text-muted-foreground text-sm">لا توجد صورة</span>
+                </div>
+              </div>
+              
+              {/* معلومات المنتج */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">رقم الموديل</label>
+                  <p className="text-lg font-semibold">{selectedProduct.modelNumber}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">اسم الشركة</label>
+                  <p className="text-lg">{selectedProduct.companyName}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">نوع المنتج</label>
+                  <p className="text-lg">{getProductTypeName(selectedProduct.productType)}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">الحالة</label>
+                  <div className="mt-1">{getStatusBadge(selectedProduct.status)}</div>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">سعر المتجر</label>
+                  <p className="text-lg font-bold text-primary">{selectedProduct.storePrice} درهم</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">سعر الأونلاين</label>
+                  <p className="text-lg font-bold text-accent">{selectedProduct.onlinePrice} درهم</p>
+                </div>
+              </div>
+              
+              {/* تفاصيل المخزون */}
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">تفاصيل المخزون</label>
+                <div className="mt-2 p-4 bg-muted/30 rounded-lg">
+                  <p className="text-center text-lg font-semibold">إجمالي الكمية: {selectedProduct.totalQuantity} قطعة</p>
+                </div>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+    </>
   );
 }
