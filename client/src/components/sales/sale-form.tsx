@@ -18,6 +18,9 @@ import { z } from "zod";
 const saleFormSchema = z.object({
   channel: z.string().min(1, "قناة البيع مطلوبة"),
   paymentMethod: z.string().min(1, "طريقة الدفع مطلوبة"),
+  customerName: z.string().min(1, "اسم الزبون مطلوب"),
+  customerPhone: z.string().min(1, "رقم هاتف الزبون مطلوب"),
+  trackingNumber: z.string().optional(),
   items: z.array(z.object({
     productId: z.string().min(1, "المنتج مطلوب"),
     color: z.string().min(1, "اللون مطلوب"),
@@ -46,6 +49,9 @@ export default function SaleForm({ onClose }: SaleFormProps) {
     defaultValues: {
       channel: "",
       paymentMethod: "",
+      customerName: "",
+      customerPhone: "",
+      trackingNumber: "",
       items: [{ productId: "", color: "", size: "", quantity: 1, unitPrice: "0" }],
     },
   });
@@ -57,6 +63,7 @@ export default function SaleForm({ onClose }: SaleFormProps) {
 
   const watchedItems = form.watch("items");
   const paymentMethod = form.watch("paymentMethod");
+  const channel = form.watch("channel");
 
   const createSaleMutation = useMutation({
     mutationFn: async (data: { sale: InsertSale; items: InsertSaleItem[] }) => {
@@ -95,6 +102,9 @@ export default function SaleForm({ onClose }: SaleFormProps) {
     const saleData: InsertSale = {
       channel: data.channel as "in-store" | "online",
       paymentMethod: data.paymentMethod,
+      customerName: data.customerName,
+      customerPhone: data.customerPhone,
+      trackingNumber: data.trackingNumber || null,
       subtotal: subtotal.toFixed(2),
       fees: fees.toFixed(2),
       total: total.toFixed(2),
@@ -189,6 +199,67 @@ export default function SaleForm({ onClose }: SaleFormProps) {
                 )}
               />
             </div>
+
+            {/* Customer Information */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <FormField
+                control={form.control}
+                name="customerName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>اسم الزبون <span className="text-destructive">*</span></FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="أدخل اسم الزبون" 
+                        {...field}
+                        data-testid="input-customer-name"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="customerPhone"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>رقم الهاتف <span className="text-destructive">*</span></FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="مثال: +971501234567" 
+                        {...field}
+                        data-testid="input-customer-phone"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Tracking Number for Online Sales */}
+            {channel === "online" && (
+              <FormField
+                control={form.control}
+                name="trackingNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>رقم التتبع (للمبيعات الأونلاين)</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="أدخل رقم التتبع للشحنة" 
+                        {...field}
+                        value={field.value || ""}
+                        data-testid="input-tracking-number"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
             {/* Sale Items */}
             <div>

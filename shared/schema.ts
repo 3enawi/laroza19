@@ -31,6 +31,9 @@ export const sales = pgTable("sales", {
   invoiceNumber: text("invoice_number").notNull().unique(),
   channel: text("channel").notNull(), // 'in-store' or 'online'
   paymentMethod: text("payment_method").notNull(),
+  customerName: text("customer_name").notNull(),
+  customerPhone: text("customer_phone").notNull(),
+  trackingNumber: text("tracking_number"), // For online sales only
   subtotal: decimal("subtotal", { precision: 10, scale: 2 }).notNull(),
   fees: decimal("fees", { precision: 10, scale: 2 }).notNull().default("0"),
   total: decimal("total", { precision: 10, scale: 2 }).notNull(),
@@ -53,6 +56,10 @@ export const returns = pgTable("returns", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   originalSaleId: varchar("original_sale_id").notNull().references(() => sales.id),
   returnType: text("return_type").notNull(), // 'refund' or 'exchange'
+  exchangeType: text("exchange_type"), // 'item-to-item' or 'size-to-size' for exchanges
+  newProductId: varchar("new_product_id").references(() => products.id), // For item-to-item exchanges
+  newColor: text("new_color"), // For exchanges
+  newSize: text("new_size"), // For exchanges
   refundAmount: decimal("refund_amount", { precision: 10, scale: 2 }).notNull().default("0"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });

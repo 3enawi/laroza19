@@ -75,21 +75,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put("/api/products/:id", async (req, res) => {
     try {
-      // تحويل الأسعار إلى strings إذا كانت numbers
-      const requestBody = { ...req.body };
-      if (typeof requestBody.storePrice === 'number') {
-        requestBody.storePrice = requestBody.storePrice.toString();
+      // Handle both product data and inventory data
+      if (req.body.product && req.body.inventory) {
+        // Full update with inventory
+        const productData = insertProductSchema.parse(req.body.product);
+        const inventoryData = req.body.inventory?.map((item: any) => 
+          insertProductInventorySchema.parse(item)
+        ) || [];
+
+        const product = await storage.updateProduct(req.params.id, productData);
+        if (!product) {
+          return res.status(404).json({ message: "Product not found" });
+        }
+
+        // Update inventory - delete all existing and add new ones
+        await storage.deleteProductInventory(req.params.id);
+        if (inventoryData.length > 0) {
+          const inventoryWithProductId = inventoryData.map((item: any) => ({
+            ...item,
+            productId: req.params.id
+          }));
+          await storage.bulkUpdateInventory(inventoryWithProductId);
+        }
+
+        const productWithInventory = await storage.getProductById(req.params.id);
+        res.json(productWithInventory);
+      } else {
+        // Simple product data update only
+        const requestBody = { ...req.body };
+        if (typeof requestBody.storePrice === 'number') {
+          requestBody.storePrice = requestBody.storePrice.toString();
+        }
+        if (typeof requestBody.onlinePrice === 'number') {
+          requestBody.onlinePrice = requestBody.onlinePrice.toString();
+        }
+        
+        const productData = insertProductSchema.partial().parse(requestBody);
+        const product = await storage.updateProduct(req.params.id, productData);
+        if (!product) {
+          return res.status(404).json({ message: "Product not found" });
+        }
+        res.json(product);
       }
-      if (typeof requestBody.onlinePrice === 'number') {
-        requestBody.onlinePrice = requestBody.onlinePrice.toString();
-      }
-      
-      const productData = insertProductSchema.partial().parse(requestBody);
-      const product = await storage.updateProduct(req.params.id, productData);
-      if (!product) {
-        return res.status(404).json({ message: "Product not found" });
-      }
-      res.json(product);
     } catch (error) {
       console.error("Error updating product:", error);
       res.status(500).json({ message: "Failed to update product" });

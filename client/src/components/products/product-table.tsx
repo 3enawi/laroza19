@@ -159,8 +159,19 @@ export default function ProductTable({ products, isLoading }: ProductTableProps)
             {filteredProducts.map((product) => (
               <Card key={product.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                 {/* صورة المنتج */}
-                <div className="aspect-[3/4] bg-muted flex items-center justify-center">
-                  <div className="text-center">
+                <div className="aspect-[3/4] bg-muted flex items-center justify-center relative overflow-hidden">
+                  {product.imageUrl ? (
+                    <img 
+                      src={product.imageUrl} 
+                      alt={`صورة ${product.modelNumber}`}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                        e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                      }}
+                    />
+                  ) : null}
+                  <div className={`text-center ${product.imageUrl ? 'hidden' : ''}`}>
                     <ImageIcon className="h-16 w-16 text-muted-foreground mx-auto mb-2" />
                     <p className="text-sm text-muted-foreground">صورة المنتج</p>
                   </div>
@@ -250,9 +261,22 @@ export default function ProductTable({ products, isLoading }: ProductTableProps)
             <div className="space-y-6">
               {/* صورة المنتج */}
               <div className="flex justify-center">
-                <div className="w-48 h-64 bg-muted rounded-lg flex flex-col items-center justify-center">
-                  <ImageIcon className="h-12 w-12 text-muted-foreground mb-2" />
-                  <span className="text-muted-foreground text-sm">لا توجد صورة</span>
+                <div className="w-48 h-64 bg-muted rounded-lg flex flex-col items-center justify-center relative overflow-hidden">
+                  {selectedProduct.imageUrl ? (
+                    <img 
+                      src={selectedProduct.imageUrl} 
+                      alt={`صورة ${selectedProduct.modelNumber}`}
+                      className="w-full h-full object-cover rounded-lg"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                        e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                      }}
+                    />
+                  ) : null}
+                  <div className={`text-center ${selectedProduct.imageUrl ? 'hidden' : ''}`}>
+                    <ImageIcon className="h-12 w-12 text-muted-foreground mb-2" />
+                    <span className="text-muted-foreground text-sm">لا توجد صورة</span>
+                  </div>
                 </div>
               </div>
               

@@ -17,6 +17,10 @@ import { z } from "zod";
 const returnFormSchema = z.object({
   originalSaleId: z.string().min(1, "الفاتورة الأصلية مطلوبة"),
   returnType: z.string().min(1, "نوع المرتجع مطلوب"),
+  exchangeType: z.string().optional(),
+  newProductId: z.string().optional(),
+  newColor: z.string().optional(),
+  newSize: z.string().optional(),
   refundAmount: z.string().min(1, "مبلغ الاسترداد مطلوب"),
   items: z.array(z.object({
     productId: z.string().min(1, "معرف المنتج مطلوب"),
@@ -24,6 +28,17 @@ const returnFormSchema = z.object({
     size: z.string().min(1, "المقاس مطلوب"),
     quantity: z.number().min(1, "الكمية يجب أن تكون على الأقل 1"),
   })).min(1, "يجب إضافة عنصر واحد على الأقل"),
+}).refine((data) => {
+  if (data.returnType === "exchange") {
+    if (!data.exchangeType) return false;
+    if (data.exchangeType === "product-to-product" && !data.newProductId) return false;
+    if (data.exchangeType === "color-change" && !data.newColor) return false;
+    if (data.exchangeType === "size-change" && !data.newSize) return false;
+  }
+  return true;
+}, {
+  message: "يجب ملء جميع الحقول المطلوبة للاستبدال",
+  path: ["exchangeType"],
 });
 
 type ReturnFormData = z.infer<typeof returnFormSchema>;
@@ -49,6 +64,10 @@ export default function ReturnForm({ onClose }: ReturnFormProps) {
     defaultValues: {
       originalSaleId: "",
       returnType: "",
+      exchangeType: "",
+      newProductId: "",
+      newColor: "",
+      newSize: "",
       refundAmount: "0",
       items: [{ productId: "", color: "", size: "", quantity: 1 }],
     },
@@ -97,6 +116,10 @@ export default function ReturnForm({ onClose }: ReturnFormProps) {
     const returnData: InsertReturn = {
       originalSaleId: data.originalSaleId,
       returnType: data.returnType as "refund" | "exchange",
+      exchangeType: data.exchangeType || null,
+      newProductId: data.newProductId || null,
+      newColor: data.newColor || null,
+      newSize: data.newSize || null,
       refundAmount: data.refundAmount,
     };
 
@@ -158,7 +181,15 @@ export default function ReturnForm({ onClose }: ReturnFormProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>نوع المرتجع <span className="text-destructive">*</span></FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={(value) => {
+                      field.onChange(value);
+                      if (value === "refund") {
+                        form.setValue("exchangeType", "");
+                        form.setValue("newProductId", "");
+                        form.setValue("newColor", "");
+                        form.setValue("newSize", "");
+                      }
+                    }} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger data-testid="select-return-type">
                           <SelectValue placeholder="اختر نوع المرتجع" />
@@ -194,6 +225,116 @@ export default function ReturnForm({ onClose }: ReturnFormProps) {
                 )}
               />
             </div>
+
+            {/* Exchange Options - Show only when exchange is selected */}
+            {form.watch("returnType") === "exchange" && (
+              <Card className="bg-accent/10 border-accent/20">
+                <CardContent className="p-6">
+                  <h4 className="font-medium mb-4 text-accent-foreground">خيارات الاستبدال</h4>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <FormField
+                      control={form.control}
+                      name="exchangeType"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>نوع الاستبدال <span className="text-destructive">*</span></FormLabel>
+                          <Select onValueChange={(value) => {
+                            field.onChange(value);
+                            // Reset other fields when exchange type changes
+                            form.setValue("newProductId", "");
+                            form.setValue("newColor", "");
+                            form.setValue("newSize", "");
+                          }} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger data-testid="select-exchange-type">
+                                <SelectValue placeholder="اختر نوع الاستبدال" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="product-to-product">استبدال منتج بمنتج آخر</SelectItem>
+                              <SelectItem value="color-change">تغيير اللون</SelectItem>
+                              <SelectItem value="size-change">تغيير المقاس</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {/* New Product Selection for product-to-product exchange */}
+                    {form.watch("exchangeType") === "product-to-product" && (
+                      <FormField
+                        control={form.control}
+                        name="newProductId"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>المنتج الجديد <span className="text-destructive">*</span></FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger data-testid="select-new-product">
+                                  <SelectValue placeholder="اختر المنتج الجديد" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {(products as any)?.map((product: any) => (
+                                  <SelectItem key={product.id} value={product.id}>
+                                    {product.modelNumber} - {product.companyName}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
+
+                    {/* New Color for color change */}
+                    {form.watch("exchangeType") === "color-change" && (
+                      <FormField
+                        control={form.control}
+                        name="newColor"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>اللون الجديد <span className="text-destructive">*</span></FormLabel>
+                            <FormControl>
+                              <Input 
+                                placeholder="مثال: أسود، أبيض، أحمر" 
+                                {...field}
+                                data-testid="input-new-color"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
+
+                    {/* New Size for size change */}
+                    {form.watch("exchangeType") === "size-change" && (
+                      <FormField
+                        control={form.control}
+                        name="newSize"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>المقاس الجديد <span className="text-destructive">*</span></FormLabel>
+                            <FormControl>
+                              <Input 
+                                placeholder="مثال: 38، 40، L، XL" 
+                                {...field}
+                                data-testid="input-new-size"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Show original sale details if selected */}
             {selectedSale && (

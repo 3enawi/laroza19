@@ -35,7 +35,8 @@ export interface IStorage {
   // Product Inventory
   getProductInventory(productId: string): Promise<ProductInventory[]>;
   updateInventory(productId: string, color: string, size: string, quantity: number): Promise<ProductInventory>;
-  bulkUpdateInventory(inventoryItems: InsertProductInventory[]): Promise<ProductInventory[]>;
+  bulkUpdateInventory(inventoryItems: (InsertProductInventory & { productId: string })[]): Promise<ProductInventory[]>;
+  deleteProductInventory(productId: string): Promise<boolean>;
   
   // Sales
   getSales(): Promise<SaleWithItems[]>;
@@ -241,7 +242,7 @@ export class MemStorage implements IStorage {
     }
   }
 
-  async bulkUpdateInventory(inventoryItems: InsertProductInventory[]): Promise<ProductInventory[]> {
+  async bulkUpdateInventory(inventoryItems: (InsertProductInventory & { productId: string })[]): Promise<ProductInventory[]> {
     const results: ProductInventory[] = [];
     
     for (const item of inventoryItems) {
@@ -250,6 +251,18 @@ export class MemStorage implements IStorage {
     }
     
     return results;
+  }
+
+  async deleteProductInventory(productId: string): Promise<boolean> {
+    const inventoryItems = Array.from(this.inventory.entries()).filter(
+      ([, item]) => item.productId === productId
+    );
+    
+    for (const [id] of inventoryItems) {
+      this.inventory.delete(id);
+    }
+    
+    return true;
   }
 
   // Sales
@@ -297,6 +310,7 @@ export class MemStorage implements IStorage {
       ...insertSale,
       id: saleId,
       invoiceNumber,
+      trackingNumber: insertSale.trackingNumber || null,
       fees: insertSale.fees || "0",
       createdAt: new Date(),
     };
@@ -394,6 +408,10 @@ export class MemStorage implements IStorage {
     const returnData: Return = {
       ...insertReturn,
       id: returnId,
+      exchangeType: insertReturn.exchangeType || null,
+      newProductId: insertReturn.newProductId || null,
+      newColor: insertReturn.newColor || null,
+      newSize: insertReturn.newSize || null,
       refundAmount: insertReturn.refundAmount || "0",
       createdAt: new Date(),
     };

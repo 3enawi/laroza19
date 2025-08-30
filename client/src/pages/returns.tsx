@@ -73,6 +73,44 @@ export default function Returns() {
                           <p className="text-sm">{new Date(returnItem.createdAt).toLocaleDateString('ar-AE')}</p>
                         </div>
                       </div>
+                      
+                      {/* Exchange Details */}
+                      {returnItem.returnType === 'exchange' && returnItem.exchangeType && (
+                        <div className="mt-4 p-3 bg-accent/10 rounded-lg border border-accent/20">
+                          <span className="text-sm font-medium text-accent-foreground mb-2 block">تفاصيل الاستبدال:</span>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                            <div>
+                              <span className="text-muted-foreground">نوع الاستبدال:</span>
+                              <p className="font-medium">
+                                {returnItem.exchangeType === 'product-to-product' && 'استبدال منتج بمنتج آخر'}
+                                {returnItem.exchangeType === 'color-change' && 'تغيير اللون'}
+                                {returnItem.exchangeType === 'size-change' && 'تغيير المقاس'}
+                              </p>
+                            </div>
+                            
+                            {returnItem.exchangeType === 'product-to-product' && returnItem.newProductId && (
+                              <div>
+                                <span className="text-muted-foreground">المنتج الجديد:</span>
+                                <p className="font-medium">معرف المنتج: {returnItem.newProductId}</p>
+                              </div>
+                            )}
+                            
+                            {returnItem.exchangeType === 'color-change' && returnItem.newColor && (
+                              <div>
+                                <span className="text-muted-foreground">اللون الجديد:</span>
+                                <p className="font-medium">{returnItem.newColor}</p>
+                              </div>
+                            )}
+                            
+                            {returnItem.exchangeType === 'size-change' && returnItem.newSize && (
+                              <div>
+                                <span className="text-muted-foreground">المقاس الجديد:</span>
+                                <p className="font-medium">{returnItem.newSize}</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
                       {returnItem.items && returnItem.items.length > 0 && (
                         <div className="mt-4">
                           <span className="text-muted-foreground text-sm">العناصر المرتجعة:</span>

@@ -197,17 +197,31 @@ export default function AddProductModal({ onClose }: AddProductModalProps) {
                         <Input 
                           placeholder="أو أدخل رابط الصورة" 
                           {...field}
-                          value={field.value || ""}
+                          value={imageFile ? `تم رفع الصورة: ${imageFile.name}` : field.value || ""}
+                          readOnly={!!imageFile}
                           data-testid="input-image-url"
                         />
                       </FormControl>
                       {imagePreview && (
-                        <div className="mt-2">
+                        <div className="mt-2 relative">
                           <img 
                             src={imagePreview} 
                             alt="معاينة الصورة" 
                             className="w-32 h-32 object-cover rounded-md border"
                           />
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => {
+                              setImageFile(null);
+                              setImagePreview("");
+                              form.setValue("imageUrl", "");
+                            }}
+                            className="absolute top-1 right-1 h-6 w-6 p-0"
+                          >
+                            ×
+                          </Button>
                         </div>
                       )}
                     </div>
