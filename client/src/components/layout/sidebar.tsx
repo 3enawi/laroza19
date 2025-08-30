@@ -20,7 +20,7 @@ export default function Sidebar() {
         <div className="flex items-center gap-3 mb-2">
           <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center p-1">
             <img 
-              src="/attached_assets/logo_1756554303945.png" 
+              src="/logo.png" 
               alt="شعار لاروزا" 
               className="w-full h-full object-contain"
             />
